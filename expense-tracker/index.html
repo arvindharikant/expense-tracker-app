@@ -3,9 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+
+    <!-- ✅ Correct Title -->
+    <title>Expense Tracker App</title>
+
+    <!-- ✅ SEO Description -->
+    <meta name="description" content="Track your income and expenses easily online" />
+
     <script>
-      // Prevent "Cannot set property fetch of #<Window> which has only a getter" error
+      // Prevent error (keep this)
       try {
         const originalFetch = window.fetch;
         Object.defineProperty(window, 'fetch', {
@@ -21,9 +27,9 @@
       }
     </script>
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
