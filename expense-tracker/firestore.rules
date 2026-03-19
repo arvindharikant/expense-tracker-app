@@ -1,0 +1,112 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: transactions
+    // Document ID: auto-generated
+    // Fields:
+    //   - userId: string (required, immutable) - The UID of the user who owns the transaction
+    //   - type: string (required, 'income' or 'expense') - The type of transaction
+    //   - amount: number (required, positive) - The transaction amount
+    //   - category: string (required, max 50 chars) - The category of the transaction
+    //   - description: string (required, max 200 chars) - A brief description
+    //   - date: string (required, YYYY-MM-DD format) - The date of the transaction
+    //   - createdAt: timestamp (required, immutable) - When the transaction was created
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    // Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if user owns the resource (for user-owned documents)
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Check if user is owner based on document's userId field
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+    
+    // Verify userId hasn't been tampered with on create
+    function uidUnchanged() {
+      return !('userId' in request.resource.data) || request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Ensure userId field is not modified on update
+    function uidNotModified() {
+      return !('userId' in request.resource.data) || request.resource.data.userId == resource.data.userId;
+    }
+    
+    // Validate required fields exist
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    // Validate string length
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    // Validate that the document contains only the allowed fields
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Validate ISO 8601 date string format (YYYY-MM-DD)
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    
+    function isValidTransaction() {
+      return hasOnlyAllowedFields(['userId', 'type', 'amount', 'category', 'description', 'date', 'createdAt']) &&
+             hasRequiredFields(['userId', 'type', 'amount', 'category', 'description', 'date', 'createdAt']) &&
+             request.resource.data.userId is string &&
+             request.resource.data.type in ['income', 'expense'] &&
+             request.resource.data.amount is number && request.resource.data.amount > 0 &&
+             validStringLength('category', 1, 50) &&
+             validStringLength('description', 0, 200) &&
+             isValidDateString(request.resource.data.date) &&
+             request.resource.data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /transactions/{transactionId} {
+      // Users can only read their own transactions
+      allow read: if isDocOwner();
+      
+      // Users can create transactions if they are authenticated, the transaction is valid, and they set themselves as the owner
+      allow create: if isAuthenticated() && 
+                    isValidTransaction() && 
+                    uidUnchanged();
+                    
+      // Users can update their own transactions, provided the transaction remains valid and they don't change the owner or creation time
+      allow update: if isDocOwner() && 
+                    isValidTransaction() && 
+                    uidNotModified() &&
+                    request.resource.data.createdAt == resource.data.createdAt;
+                    
+      // Users can delete their own transactions
+      allow delete: if isDocOwner();
+    }
+  }
+}
