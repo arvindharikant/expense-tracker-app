@@ -1,0 +1,5 @@
+{
+  "name": "Expense Tracker",
+  "description": "A modern expense tracker web app with income, expenses, and transaction history.",
+  "requestFramePermissions": []
+}

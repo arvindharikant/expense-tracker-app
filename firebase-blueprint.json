@@ -1,0 +1,125 @@
+{
+  "entities": {
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A financial transaction representing either income or an expense.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who created the transaction."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["income", "expense"],
+          "description": "The type of the transaction."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The monetary amount of the transaction. Must be positive."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category of the transaction (e.g., Groceries, Salary)."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the transaction."
+        },
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "The date of the transaction in YYYY-MM-DD format."
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "The timestamp when the transaction was created."
+        }
+      },
+      "required": ["userId", "type", "amount", "category", "description", "date", "createdAt"]
+    },
+    "Budget": {
+      "title": "Budget",
+      "description": "User specific budget limit for a category.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the user."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category the budget applies to."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The specific budget amount for the category."
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "The timestamp when the budget was set."
+        }
+      },
+      "required": ["userId", "category", "amount", "createdAt"]
+    },
+    "Reminder": {
+      "title": "Reminder",
+      "description": "Debt tracking reminder for money lent or borrowed.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the user."
+        },
+        "personName": {
+          "type": "string",
+          "description": "Name of the person."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount of money."
+        },
+        "note": {
+          "type": "string"
+        },
+        "dueDate": {
+          "type": "string",
+          "format": "date",
+          "description": "YYYY-MM-DD format"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["lent", "borrowed"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "paid"]
+        },
+        "createdAt": {
+          "type": "timestamp"
+        }
+      },
+      "required": ["userId", "personName", "amount", "note", "dueDate", "type", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/transactions/{transactionId}": {
+      "schema": {
+        "$ref": "#/entities/Transaction"
+      },
+      "description": "Collection of all user transactions."
+    },
+    "/budgets/{budgetId}": {
+      "schema": {
+        "$ref": "#/entities/Budget"
+      },
+      "description": "User category budgets limits."
+    },
+    "/reminders/{reminderId}": {
+      "schema": {
+        "$ref": "#/entities/Reminder"
+      },
+      "description": "User debt reminders."
+    }
+  }
+}
