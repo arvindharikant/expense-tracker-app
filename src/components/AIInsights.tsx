@@ -11,16 +11,22 @@ interface Props {
 
 export function AIInsights({ transactions }: Props) {
   const { formatAmount } = useCurrency();
-  const [insights, setInsights] = useState<{ summary: string; improvements: string[]; overspending: string[] } | null>(null);
+
+  const [insights, setInsights] = useState<{
+    summary: string;
+    improvements: string[];
+    overspending: string[];
+  } | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const generateInsights = async () => {
-    if (!process.env.GEMINI_API_KEY) {
+    if (!import.meta.env.VITE_GEMINI_API_KEY) {
       setError('Gemini API key is not configured.');
       return;
     }
-    
+
     if (transactions.length === 0) {
       setError('Not enough transaction data to analyze.');
       return;
@@ -30,34 +36,47 @@ export function AIInsights({ transactions }: Props) {
     setError('');
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      
+      console.log(import.meta.env.VITE_GEMINI_API_KEY)
+      const ai = new GoogleGenAI({
+        apiKey: import.meta.env.VITE_GEMINI_API_KEY
+      });
+
       const prompt = `
-        Analyze the following user transaction data (in JSON format) to provide financial insights.
-        The data includes income and expenses with categories and amounts.
-        
-        Provide the response in the following strict JSON format without markdown wrapping, just the raw JSON:
+        Analyze the following user transaction data and provide financial insights.
+
+        Return ONLY valid JSON in this format:
         {
-          "summary": "A brief 2-3 sentence overall financial summary. Compare current month spending with the previous month if data exists.",
-          "overspending": ["category 1", "category 2"], // Array of strings highlighting areas of high spending
-          "improvements": ["suggestion 1", "suggestion 2"] // Array of strings with actionable budget improvements
+          "summary": "Short financial summary",
+          "overspending": ["category1", "category2"],
+          "improvements": ["tip1", "tip2"]
         }
-        
-        Transactions Data:
-        ${JSON.stringify(transactions.map(t => ({
-          type: t.type, amount: t.amount, category: t.category, date: format(parseISO(t.date), 'yyyy-MM-dd')
-        })))}
+
+        Transactions:
+        ${JSON.stringify(
+          transactions.map((t) => ({
+            type: t.type,
+            amount: t.amount,
+            category: t.category,
+            date: format(parseISO(t.date), 'yyyy-MM-dd')
+          }))
+        )}
       `;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+       model: "gemini-1.5-flash",
         contents: prompt
       });
-      
-      const text = response.text?.replace(/```json/g, '').replace(/```/g, '').trim() || '{}';
+
+      const text =
+        response.text
+          ?.replace(/```json/g, '')
+          .replace(/```/g, '')
+          .trim() || '{}';
+
       const parsed = JSON.parse(text);
+
       setInsights(parsed);
-      
+
     } catch (err) {
       console.error(err);
       setError('Failed to generate insights. Please try again.');
@@ -72,20 +91,28 @@ export function AIInsights({ transactions }: Props) {
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
             <Sparkles size={28} className="text-purple-200" />
-            <h2 className="text-2xl font-bold">AI Financial Insights</h2>
+            <h2 className="text-2xl font-bold">
+              AI Financial Insights
+            </h2>
           </div>
+
           <p className="text-purple-100 mb-8 max-w-xl">
-            Get personalized insights, detect overspending patterns, and receive budget improvement tips powered by Google Gemini.
+            Get personalized financial insights powered by Gemini AI.
           </p>
-          
+
           <button
             onClick={generateInsights}
             disabled={loading}
             className="bg-white text-purple-600 hover:bg-purple-50 px-6 py-3 rounded-xl font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
           >
-            {loading ? <Loader2 size={20} className="animate-spin" /> : "Generate Insights"}
+            {loading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              'Generate Insights'
+            )}
           </button>
         </div>
+
         <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
       </div>
 
@@ -97,38 +124,55 @@ export function AIInsights({ transactions }: Props) {
 
       {insights && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
           <div className="md:col-span-3 bg-white dark:bg-zinc-900 p-6 rounded-3xl shadow-sm border border-zinc-100 dark:border-zinc-800">
-            <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-3">Overall Summary</h3>
-            <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">{insights.summary}</p>
+            <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-3">
+              Overall Summary
+            </h3>
+
+            <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              {insights.summary}
+            </p>
           </div>
-          
+
           <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl shadow-sm border border-zinc-100 dark:border-zinc-800">
             <h3 className="font-semibold text-zinc-900 dark:text-zinc-50 mb-4 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-red-400"></span>
               High Spending Areas
             </h3>
+
             <ul className="space-y-3">
               {insights.overspending?.map((item, i) => (
-                <li key={i} className="text-zinc-600 dark:text-zinc-400 text-sm flex items-start gap-2">
+                <li
+                  key={i}
+                  className="text-zinc-600 dark:text-zinc-400 text-sm flex items-start gap-2"
+                >
                   <span className="text-red-400 mt-1">•</span>
                   <span>{item}</span>
                 </li>
               ))}
             </ul>
           </div>
-          
+
           <div className="md:col-span-2 bg-white dark:bg-zinc-900 p-6 rounded-3xl shadow-sm border border-zinc-100 dark:border-zinc-800">
             <h3 className="font-semibold text-zinc-900 dark:text-zinc-50 mb-4 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
               Actionable Improvements
             </h3>
+
             <div className="space-y-4">
               {insights.improvements?.map((item, i) => (
-                <div key={i} className="bg-emerald-50 dark:bg-emerald-500/10 p-4 rounded-xl">
-                  <p className="text-emerald-800 dark:text-emerald-300 text-sm">{item}</p>
+                <div
+                  key={i}
+                  className="bg-emerald-50 dark:bg-emerald-500/10 p-4 rounded-xl"
+                >
+                  <p className="text-emerald-800 dark:text-emerald-300 text-sm">
+                    {item}
+                  </p>
                 </div>
               ))}
             </div>
+
           </div>
         </div>
       )}
