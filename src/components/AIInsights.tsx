@@ -22,9 +22,7 @@ export function AIInsights({ transactions }: Props) {
   const [error, setError] = useState('');
 
   const generateInsights = async () => {
-    
-
-    if (transactions.length === 0) {
+       if (transactions.length === 0) {
       setError('Not enough transaction data to analyze.');
       return;
     }
@@ -57,12 +55,12 @@ export function AIInsights({ transactions }: Props) {
             date: format(parseISO(t.date), 'yyyy-MM-dd')
           }))
         )}
-      `;
+     `;
 
-      const response = await ai.models.generateContent({
-       model: "gemini-1.5-flash",
-        contents: prompt
-      });
+const response = await ai.models.generateContent({
+  model: "gemini-1.5-flash",
+  contents: prompt
+});
 
       const text =
         response.text
