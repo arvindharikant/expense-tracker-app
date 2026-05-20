@@ -22,9 +22,6 @@ export function AIInsights({ transactions }: Props) {
   const [error, setError] = useState('');
 
   const generateInsights = async () => {
-    if (!import.meta.env.VITE_GEMINI_API_KEY) {
-      setError('Gemini API key is not configured.');
-      return;
     }
 
     if (transactions.length === 0) {
