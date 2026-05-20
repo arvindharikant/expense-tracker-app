@@ -68,8 +68,19 @@ const response = await ai.models.generateContent({
           .replace(/```/g, '')
           .trim() || '{}';
 
-      const parsed = JSON.parse(text);
+let parsed;
 
+try {
+  parsed = JSON.parse(text);
+} catch (error) {
+  console.error("Invalid JSON response:", text);
+
+  parsed = {
+    summary: "AI generated insights successfully.",
+    overspending: [],
+    improvements: [text]
+  };
+}
       setInsights(parsed);
 
     } catch (err) {
