@@ -22,7 +22,7 @@ export function AIInsights({ transactions }: Props) {
   const [error, setError] = useState('');
 
   const generateInsights = async () => {
-    }
+    
 
     if (transactions.length === 0) {
       setError('Not enough transaction data to analyze.');
