@@ -58,7 +58,7 @@ export function AIInsights({ transactions }: Props) {
      `;
 
 const response = await ai.models.generateContent({
- model: "gemini-1.5-flash-8b",
+model: "gemini-1.5-flash",
   contents: prompt
 });
 
