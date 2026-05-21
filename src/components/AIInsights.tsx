@@ -58,7 +58,7 @@ export function AIInsights({ transactions }: Props) {
      `;
 
 const response = await ai.models.generateContent({
-model: "gemini-pro",
+model: "gemini-2.0-flash",
   contents: prompt
 });
 
