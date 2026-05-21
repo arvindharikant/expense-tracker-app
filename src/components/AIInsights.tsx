@@ -52,12 +52,12 @@ setTimeout(() => {
           <div className="flex items-center gap-3 mb-4">
             <Sparkles size={28} className="text-purple-200" />
             <h2 className="text-2xl font-bold">
-              AI Financial Insights
+             Smart Financial Insights
             </h2>
           </div>
 
           <p className="text-purple-100 mb-8 max-w-xl">
-            Get personalized financial insights powered by Gemini AI.
+            Get smart spending analysis and personalized financial recommendations.
           </p>
 
           <button
